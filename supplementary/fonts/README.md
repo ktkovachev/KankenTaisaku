@@ -1,0 +1,1 @@
+The font inside the Anki deck is `_ackaisyo.ttf`.
