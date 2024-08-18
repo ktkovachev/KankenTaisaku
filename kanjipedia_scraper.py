@@ -26,11 +26,11 @@ KOTOWAZA_PATH = f"{BASE_PATH}/{KOTOWAZA_INDEX_NAME}"
 JUKUJIKUN_ATEJI_PATH = f"{BASE_PATH}/{JUKUJIKUN_ATEJI_INDEX_NAME}"
 KOTOBA_PATH = f"{BASE_PATH}/kotoba"
 
-with open("kanken.json") as f:
+with open("supplementary/characters/kanken.json") as f:
     j = json.load(f)
     KANJI_LIST = functools.reduce(operator.add, (level["kanjiList"] for level in j))
 
-with open("hiragana.json") as f:
+with open("supplementary/characters/hiragana.json") as f:
     j = json.load(f)
     HIRAGANA = functools.reduce(operator.add, (item["kana"] for item in j if len(item["kana"]) == 1))
 
