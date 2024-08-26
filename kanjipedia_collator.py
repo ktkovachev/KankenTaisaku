@@ -3,7 +3,7 @@ import os.path
 import bs4
 from tqdm import tqdm
 from data_models import GlyphOrigin, Kanji, KankenLevels, RikuSho
-from global_data import KANJI_READINGS, IMAGE_NAME_TO_RADICAL, HEADWORD_KANJI_TO_UNICODE
+from global_data import KANJI_READINGS, IMAGE_NAME_TO_RADICAL, HEADWORD_KANJI_TO_UNICODE, KANJI_ETYMOLOGIES
 
 def compile_yojijukugo() -> list[str]:
     yoji_pattern = re.compile(r'<div id="kotobaArea">[\s\S]+?<p>.*?(\w{4})<\/p>\s*<p class="kotobaYomi">(\w+)<\/p>')
@@ -75,7 +75,7 @@ def parse_single_kanji(page_data: str) -> Kanji:
     added_stroke_count = re.search(r'部首内画数(\d+)', page_data).group(1)
 
     kanji_right_section = parser.find(id="kanjiRightSection")
-    meanings = kanji_right_section.findChild("div").text.replace("\n", "<br>")
+    meanings = kanji_right_section.findChild("div").text.strip().replace("\n", "<br>")
 
     if (origin_head := parser.find(href="https://promo.kadokawa.co.jp/shinjigen/")) and (
         (origin_explanation := origin_head.find_next("p"))
