@@ -1,13 +1,13 @@
 import sys
 import argparse
-from kanjipedia_collator import parse_all_kanji
-from anki_deck_generator import build_deck
 
 def generate_anki_deck():
+    from anki_deck_generator import build_deck
     print("Building Anki deck...", file=sys.stderr)
     pass
 
 def generate_data_files():
+    from kanjipedia_collator import parse_all_kanji
     all_kanji = parse_all_kanji()
     with open("build/kanji.tsv", mode="w") as f:
         f.write("\n".join(str(kanji) for kanji in all_kanji))
