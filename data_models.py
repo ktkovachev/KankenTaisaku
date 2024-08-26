@@ -182,3 +182,14 @@ class ReadingSet(TypedDict):
     on: list[str]
     kun: list[str]
     nanori: list[str]
+
+class KaikkiTemplateData(TypedDict):
+    name: str
+    args: dict[str, str]
+    expansion: str
+
+class KaikkiKanjiData(TypedDict):
+    redirects: list[str]
+    etymology_text: str
+    word: str
+    etymology_templates: list[KaikkiTemplateData]
