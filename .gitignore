@@ -3,3 +3,4 @@ build
 *.txt
 *.zip
 __pycache__
+kaikki.org-*
