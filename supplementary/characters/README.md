@@ -8,3 +8,5 @@ directory to download and re-process the Kaikki.org data.
 It will produce a file, `kanji_etymologies.json`, which will map kanji to their etymologies according to the English Wiktionary.
 A stable version of this file is also included in the repository so that you don't need to go through all that just to run the
 rest of the program, but the option is nevertheless available.
+
+Other than Kaikki, this folder also contains the Kanken kanji levels and hiragana, both as JSON.
