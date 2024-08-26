@@ -27,6 +27,7 @@ I was considering using another font, called Hakushu Kaisho, but it didn't have 
 ## Character data
 - Kanken kanji levels as JSON (https://github.com/hoffmannjp/kanken-json)
 - All hiragana as JSON (https://gist.github.com/mdzhang/899a427eb3d0181cd762)
+- Glyph origin from Wiktionary, via Kaikki.org (https://kaikki.org/dictionary/Chinese/pos-character/index.html)
 
 # Notice
 All resources are used under the presumption of fair use. If you would like a resource included publicly in this repository
