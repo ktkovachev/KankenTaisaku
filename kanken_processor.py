@@ -7,10 +7,15 @@ def generate_anki_deck():
     pass
 
 def generate_data_files():
-    from kanjipedia_collator import parse_all_kanji
-    all_kanji = parse_all_kanji()
-    with open("build/kanji.tsv", mode="w") as f:
-        f.write("\n".join(str(kanji) for kanji in all_kanji))
+    from kanjipedia_collator import parse_all_kanji, parse_all_kotoba
+
+    # all_kanji = parse_all_kanji()
+    # with open("build/kanji.tsv", mode="w") as f:
+    #     f.write("\n".join(str(kanji) for kanji in all_kanji))
+
+    all_kotoba = parse_all_kotoba()
+    with open("build/kotoba.tsv", mode="w") as f:
+        f.write("\n".join(str(kotoba) for kotoba in all_kotoba))
 
 def main():
     cli_parser = argparse.ArgumentParser(

@@ -2,8 +2,8 @@ import regex as re
 import os.path
 import bs4
 from tqdm import tqdm
-from data_models import GlyphOrigin, Kanji, KankenLevels, Kotoba, RikuSho
-from global_data import KANJI_READINGS, IMAGE_NAME_TO_RADICAL, HEADWORD_KANJI_TO_UNICODE, KANJI_ETYMOLOGIES, SPECIAL_IMAGE_EXCEPTIONS
+from data_models import GlyphOrigin, Kanji, Kanjitab, KankenLevels, Kotoba, RikuSho
+from global_data import KANJI_READINGS, IMAGE_NAME_TO_RADICAL, HEADWORD_KANJI_TO_UNICODE, KANJI_ETYMOLOGIES, PITCH_ACCENTS, SPECIAL_IMAGE_EXCEPTIONS
 
 def compile_yojijukugo() -> list[str]:
     yoji_pattern = re.compile(r'<div id="kotobaArea">[\s\S]+?<p>.*?(\w{4})<\/p>\s*<p class="kotobaYomi">(\w+)<\/p>')
@@ -123,4 +123,36 @@ def parse_all_kanji(save_path: str = "kanjipedia/kanji") -> list[Kanji]:
     return out
 
 def parse_single_kotoba(page_data: str) -> Kotoba:
-    pass
+    parser = bs4.BeautifulSoup(page_data, "html.parser")
+    
+    headline_div = parser.find("div", id="kotobaArea")
+    try:
+        word = headline_div.find_next("p").text
+        reading = headline_div.find_next("p").find_next("p").text
+    except AttributeError:
+        print("Word/reading is absent")
+        print(page_data)
+    
+    try:
+        meaning = parser.find("div", id="kotobaExplanationSection").text.strip()
+    except AttributeError:
+        print("Meaning is absent")
+        print(page_data)
+
+    pitch_accent_pattern = PITCH_ACCENTS.get(word, {"accent": []})["accent"]  # If no accents found, just give an empty list
+
+    return Kotoba(
+        word,
+        reading,
+        pitch_accent_pattern,
+        meaning,
+        Kanjitab()
+    )
+
+def parse_all_kotoba(save_path: str = "kanjipedia/kotoba/kotoba") -> list[Kotoba]:
+    out = []
+    for file in tqdm(os.listdir(save_path)):
+        file_path = os.path.join(save_path, file)
+        with open(file_path) as f:
+            out.append(parse_single_kotoba(f.read()))
+    return out

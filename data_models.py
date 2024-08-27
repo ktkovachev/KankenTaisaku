@@ -174,9 +174,23 @@ class Kanjitab:
 class Kotoba:
     word: str
     reading: str  # List of readings?
-    pitch_accent_pattern: int  # 0 = heiban, other = pitch of mora preceding the accent drop
+    pitch_accent_pattern: list[str]  # 0 = heiban, other = pitch of mora preceding the accent drop; allow qualifiers such as (副)1 tentatively as strings
     meaning: str  # Definition as a paragraph
     kanjitab: Kanjitab
+
+    @staticmethod
+    def process_pitch_accent_patterns(pattern: list[str]) -> str:
+        return ",".join(f"[{accent}]" for accent in pattern)
+
+    def __str__(self) -> str:
+        return "\t".join(
+            (
+                self.word,
+                self.reading,
+                self.process_pitch_accent_patterns(self.pitch_accent_pattern),
+                self.meaning,
+            )
+        )
 
 def kanken_level_single(kanji: str) -> str:
     return KANJI_LEVELS[kanji]
