@@ -166,6 +166,18 @@ class Kanji:
             )
         )
 
+@dataclass
+class Kanjitab:
+    pass
+
+@dataclass
+class Kotoba:
+    word: str
+    reading: str  # List of readings?
+    pitch_accent_pattern: int  # 0 = heiban, other = pitch of mora preceding the accent drop
+    meaning: str  # Definition as a paragraph
+    kanjitab: Kanjitab
+
 def kanken_level_single(kanji: str) -> str:
     return KANJI_LEVELS[kanji]
 
