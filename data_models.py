@@ -176,6 +176,7 @@ class Kotoba:
     reading: str  # List of readings?
     pitch_accent_pattern: list[str]  # 0 = heiban, other = pitch of mora preceding the accent drop; allow qualifiers such as (副)1 tentatively as strings
     meaning: str  # Definition as a paragraph
+    is_jukujikun_ateji: bool  # If the word uses "irregular" readings
     kanjitab: Kanjitab
 
     @staticmethod
