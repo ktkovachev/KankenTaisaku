@@ -2,7 +2,7 @@ import regex as re
 import os.path
 import bs4
 from tqdm import tqdm
-from data_models import GlyphOrigin, Kanji, KankenLevels, RikuSho
+from data_models import GlyphOrigin, Kanji, KankenLevels, Kotoba, RikuSho
 from global_data import KANJI_READINGS, IMAGE_NAME_TO_RADICAL, HEADWORD_KANJI_TO_UNICODE, KANJI_ETYMOLOGIES, SPECIAL_IMAGE_EXCEPTIONS
 
 def compile_yojijukugo() -> list[str]:
@@ -121,3 +121,6 @@ def parse_all_kanji(save_path: str = "kanjipedia/kanji") -> list[Kanji]:
         with open(file_path) as f:
             out.append(parse_single_kanji(f.read()))
     return out
+
+def parse_single_kotoba(page_data: str) -> Kotoba:
+    pass
