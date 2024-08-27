@@ -3,7 +3,7 @@ import os.path
 import bs4
 from tqdm import tqdm
 from data_models import GlyphOrigin, Kanji, KankenLevels, RikuSho
-from global_data import KANJI_READINGS, IMAGE_NAME_TO_RADICAL, HEADWORD_KANJI_TO_UNICODE, KANJI_ETYMOLOGIES
+from global_data import KANJI_READINGS, IMAGE_NAME_TO_RADICAL, HEADWORD_KANJI_TO_UNICODE, KANJI_ETYMOLOGIES, SPECIAL_IMAGE_EXCEPTIONS
 
 def compile_yojijukugo() -> list[str]:
     yoji_pattern = re.compile(r'<div id="kotobaArea">[\s\S]+?<p>.*?(\w{4})<\/p>\s*<p class="kotobaYomi">(\w+)<\/p>')
@@ -30,7 +30,11 @@ def convert_kanji_image(page_data: str, parser: bs4.BeautifulSoup) -> str:
         image_type = m.group(1)  # 'nw' or 'std'; 'nw' is special and apparently arbitrary, so needs look-up
         if image_type == "std":
             kanji_code = m.group(2)
-            return chr(int(kanji_code, 16))
+
+            if kanji_code in SPECIAL_IMAGE_EXCEPTIONS:
+                return SPECIAL_IMAGE_EXCEPTIONS[kanji_code]
+
+            return chr(int(kanji_code, 16))  # The kanji image file is just named after its own Unicode codepoint
         else:
             num = m.group(2)
             try:
@@ -82,6 +86,9 @@ def parse_single_kanji(page_data: str) -> Kanji:
     ):
         origin = GlyphOrigin(RikuSho.ARBITRARY, origin_explanation.text.strip())
     else:
+        if kanji in KANJI_ETYMOLOGIES:
+            # TODO: extract the etymology from the etymology templates and give a precise etymology
+            pass
         origin = GlyphOrigin(RikuSho.UNKNOWN, None)
 
 

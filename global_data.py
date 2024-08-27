@@ -10,5 +10,8 @@ with open("supplementary/kanjipedia/bushu_image_to_unicode.json") as f:
 with open("supplementary/kanjipedia/headword_kanji_to_unicode.json") as f:
     HEADWORD_KANJI_TO_UNICODE: dict[str, str] = json.load(f)
 
+with open("supplementary/kanjipedia/special_image_exceptions.json") as f:
+    SPECIAL_IMAGE_EXCEPTIONS: dict[str, str] = json.load(f)
+
 with open("supplementary/characters/kanji_etymologies.json") as f:
-    KANJI_ETYMOLOGIES = dict[str, list[KaikkiKanjiData]]
+    KANJI_ETYMOLOGIES: dict[str, list[KaikkiKanjiData]] = json.load(f)
