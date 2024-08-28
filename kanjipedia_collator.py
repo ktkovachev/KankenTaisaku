@@ -140,23 +140,15 @@ def parse_single_kotoba(page_data: str) -> Kotoba:
     parser = bs4.BeautifulSoup(page_data, "html.parser")
     
     headline_div = parser.find("div", id="kotobaArea")
-    try:
-        word = headline_div.find_next("p").text
-        reading = headline_div.find_next("p").find_next("p").text
-    except AttributeError:
-        print("Word/reading is absent")
-        print(page_data)
+    word = headline_div.find_next("p").text
+    reading = headline_div.find_next("p").find_next("p").text
     
     is_jukujikun_ateji = has_ateji_or_jukujikun(word)
     word = strip_usage_symbols(word)
 
-    try:
-        meaning = parser.find("div", id="kotobaExplanationSection").text.strip()
-        meaning = COLUMN_RUBRIC_PATTERN.sub("", meaning)  # Remove kanji article advertisements
-        meaning = meaning.replace("\n", "<br>")  # Encode newlines without using the delimiting \n character
-    except AttributeError:
-        print("Meaning is absent")
-        print(page_data)
+    meaning = parser.find("div", id="kotobaExplanationSection").text.strip()
+    meaning = COLUMN_RUBRIC_PATTERN.sub("", meaning)  # Remove kanji article advertisements
+    meaning = meaning.replace("\n", "<br>")  # Encode newlines without using the delimiting \n character
 
     pitch_accent_pattern = PITCH_ACCENTS.get(word, {"accent": []})["accent"]  # If no accents found, just give an empty list
 
