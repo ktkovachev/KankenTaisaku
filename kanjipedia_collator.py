@@ -122,6 +122,19 @@ def parse_all_kanji(save_path: str = "kanjipedia/kanji") -> list[Kanji]:
             out.append(parse_single_kanji(f.read()))
     return out
 
+USAGE_SYMBOL_PATTERN = re.compile(r"[▲△〈〉]")
+def strip_usage_symbols(headword: str) -> str:
+    """Remove the following symbols:
+        ▲ (referring to a reading of a jōyō kanji, which is not in the jōyō reading list)
+        △ (denoting a non-jōyō kanji)
+        〈〉 (encircling ateji or jukujikun entries)
+    """
+    return USAGE_SYMBOL_PATTERN.sub("", headword)
+
+ATEJI_JUKUJI_HEADWORD_PATTERN = re.compile(r"〈.+〉")
+def has_ateji_or_jukujikun(headword: str) -> bool:
+    return bool(ATEJI_JUKUJI_HEADWORD_PATTERN.search(headword))  # Appears anywhere in the word, for any potential edge case
+
 COLUMN_RUBRIC_PATTERN = re.compile(r"■コラムを読んでみよう\n.+")
 def parse_single_kotoba(page_data: str) -> Kotoba:
     parser = bs4.BeautifulSoup(page_data, "html.parser")
@@ -134,6 +147,9 @@ def parse_single_kotoba(page_data: str) -> Kotoba:
         print("Word/reading is absent")
         print(page_data)
     
+    is_jukujikun_ateji = has_ateji_or_jukujikun(word)
+    word = strip_usage_symbols(word)
+
     try:
         meaning = parser.find("div", id="kotobaExplanationSection").text.strip()
         meaning = COLUMN_RUBRIC_PATTERN.sub("", meaning)  # Remove kanji article advertisements
@@ -145,11 +161,12 @@ def parse_single_kotoba(page_data: str) -> Kotoba:
     pitch_accent_pattern = PITCH_ACCENTS.get(word, {"accent": []})["accent"]  # If no accents found, just give an empty list
 
     return Kotoba(
-        word,
-        reading,
-        pitch_accent_pattern,
-        meaning,
-        Kanjitab()
+        word=word,
+        reading=reading,
+        pitch_accent_pattern=pitch_accent_pattern,
+        meaning=meaning,
+        is_jukujikun_ateji=is_jukujikun_ateji,
+        kanjitab=Kanjitab()
     )
 
 def parse_all_kotoba(save_path: str = "kanjipedia/kotoba/kotoba") -> list[Kotoba]:
