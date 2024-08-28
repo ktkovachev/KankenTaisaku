@@ -122,6 +122,7 @@ def parse_all_kanji(save_path: str = "kanjipedia/kanji") -> list[Kanji]:
             out.append(parse_single_kanji(f.read()))
     return out
 
+COLUMN_RUBRIC_PATTERN = re.compile(r"■コラムを読んでみよう\n.+")
 def parse_single_kotoba(page_data: str) -> Kotoba:
     parser = bs4.BeautifulSoup(page_data, "html.parser")
     
@@ -135,6 +136,8 @@ def parse_single_kotoba(page_data: str) -> Kotoba:
     
     try:
         meaning = parser.find("div", id="kotobaExplanationSection").text.strip()
+        meaning = COLUMN_RUBRIC_PATTERN.sub("", meaning)  # Remove kanji article advertisements
+        meaning = meaning.replace("\n", "<br>")  # Encode newlines without using the delimiting \n character
     except AttributeError:
         print("Meaning is absent")
         print(page_data)
