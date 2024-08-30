@@ -135,6 +135,10 @@ ATEJI_JUKUJI_HEADWORD_PATTERN = re.compile(r"〈.+〉")
 def has_ateji_or_jukujikun(headword: str) -> bool:
     return bool(ATEJI_JUKUJI_HEADWORD_PATTERN.search(headword))  # Appears anywhere in the word, for any potential edge case
 
+def get_nyms(meanings: str) -> tuple[list[str], list[str]]:
+    "Get the synonyms or antonyms for a kanji or word. These are placed at the end of the definition and list specific senses."
+    pass
+
 COLUMN_RUBRIC_PATTERN = re.compile(r"■コラムを読んでみよう\n.+")
 def parse_single_kotoba(page_data: str) -> Kotoba:
     parser = bs4.BeautifulSoup(page_data, "html.parser")
