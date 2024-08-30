@@ -147,23 +147,30 @@ class Kanji:
     def format_kanji_reading_list(readings: list[str]) -> str:
         return "; ".join(readings)
 
+    def as_tuple(self) -> tuple:
+        return (
+            self.character,
+            str(self.level),
+            str(int(self.is_kokuji)),  # 0 or 1
+            self.meanings,
+            self.format_kanji_reading_list(self.on),
+            self.format_kanji_reading_list(self.goon),
+            self.format_kanji_reading_list(self.kanon),
+            self.format_kanji_reading_list(self.kanyoon),
+            self.format_kanji_reading_list(self.toon),
+            self.format_kanji_reading_list(self.soon),
+            self.format_kanji_reading_list(self.kun),
+            self.radical,
+            str(self.strokes),
+            str(self.added_strokes),
+            str(self.glyph_origin),
+            # self.replaces,
+            # self.replaced_by
+        )
+
     def __str__(self) -> str:
         return"\t".join(
-            (
-                self.character,
-                str(self.level),
-                str(int(self.is_kokuji)),  # 0 or 1
-                self.meanings,
-                self.format_kanji_reading_list(self.on),
-                self.format_kanji_reading_list(self.goon),
-                self.format_kanji_reading_list(self.kanon),
-                self.format_kanji_reading_list(self.kanyoon),
-                self.format_kanji_reading_list(self.toon),
-                self.format_kanji_reading_list(self.soon),
-                self.format_kanji_reading_list(self.kun),
-                self.radical,
-                str(self.glyph_origin),
-            )
+            self.as_tuple()
         )
 
 @dataclass
@@ -183,14 +190,18 @@ class Kotoba:
     def process_pitch_accent_patterns(pattern: list[str]) -> str:
         return ",".join(f"[{accent}]" for accent in pattern)
 
+    def as_tuple(self) -> tuple:
+        return (
+            self.word,
+            self.reading,
+            self.process_pitch_accent_patterns(self.pitch_accent_pattern),
+            self.meaning,
+            str(int(self.is_jukujikun_ateji))
+        )
+
     def __str__(self) -> str:
         return "\t".join(
-            (
-                self.word,
-                self.reading,
-                self.process_pitch_accent_patterns(self.pitch_accent_pattern),
-                self.meaning,
-            )
+            self.as_tuple()
         )
 
 def kanken_level_single(kanji: str) -> str:
