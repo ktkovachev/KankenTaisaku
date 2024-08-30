@@ -27,7 +27,7 @@ def main():
         prog="kanken-processor",
         description="Program that collates Kanken data",
     )
-    cli_parser.add_argument("action", choices=["compile-data", "compile-deck"])
+    cli_parser.add_argument("action", choices=["compile-data", "compile-deck", "compile-all"])
 
     args = cli_parser.parse_args()
 
@@ -36,6 +36,8 @@ def main():
         generate_data_files()
     elif action == "compile-deck":
         generate_anki_deck()
+    elif action == "compile-all":
+        pass  # WIP
     else:
         print("Invalid action:", action, file=sys.stderr)
 
