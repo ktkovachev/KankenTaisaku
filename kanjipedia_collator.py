@@ -1,3 +1,4 @@
+from typing import Generator
 import regex as re
 import os.path
 import bs4
@@ -114,13 +115,11 @@ def parse_single_kanji(page_data: str) -> Kanji:
         replaces=[]
     )
 
-def parse_all_kanji(save_path: str = "kanjipedia/kanji") -> list[Kanji]:
-    out = []
+def parse_all_kanji(save_path: str = "kanjipedia/kanji") -> Generator[Kanji, None, None]:
     for file in tqdm(os.listdir(save_path)):
         file_path = os.path.join(save_path, file)
         with open(file_path) as f:
-            out.append(parse_single_kanji(f.read()))
-    return out
+            yield parse_single_kanji(f.read())
 
 USAGE_SYMBOL_PATTERN = re.compile(r"[▲△〈〉]")
 def strip_usage_symbols(headword: str) -> str:
@@ -165,10 +164,8 @@ def parse_single_kotoba(page_data: str) -> Kotoba:
         kanjitab=Kanjitab()
     )
 
-def parse_all_kotoba(save_path: str = "kanjipedia/kotoba/kotoba") -> list[Kotoba]:
-    out = []
+def parse_all_kotoba(save_path: str = "kanjipedia/kotoba/kotoba") -> Generator[Kotoba, None, None]:
     for file in tqdm(os.listdir(save_path)):
         file_path = os.path.join(save_path, file)
         with open(file_path) as f:
-            out.append(parse_single_kotoba(f.read()))
-    return out
+            yield parse_single_kotoba(f.read())
