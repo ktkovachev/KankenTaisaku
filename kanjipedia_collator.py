@@ -1,9 +1,10 @@
+import itertools
 from typing import Generator
 import regex as re
 import os.path
 import bs4
 from tqdm import tqdm
-from data_models import GlyphOrigin, Kanji, Kanjitab, KankenLevels, Kotoba, RikuSho
+from data_models import GlyphOrigin, Kanji, Kanjitab, KankenLevels, Kotoba, Reading, RikuSho
 from global_data import KANJI_READINGS, IMAGE_NAME_TO_RADICAL, HEADWORD_KANJI_TO_UNICODE, KANJI_ETYMOLOGIES, PITCH_ACCENTS, SPECIAL_IMAGE_EXCEPTIONS
 
 def compile_yojijukugo() -> list[str]:
@@ -46,6 +47,31 @@ def convert_kanji_image(page_data: str, parser: bs4.BeautifulSoup) -> str:
     else:
         raise Exception("Kanji could not be retrieved")
 
+def create_reading_list(wiktionary_readings: list[str], kanken_readings: list[str]) -> list[Reading]:
+    return [
+        Reading(reading=reading,
+                in_wiktionary=reading in wiktionary_readings,
+                in_kanken=reading in kanken_readings
+            )
+        for reading in itertools.chain(set(wiktionary_readings), set(kanken_readings))
+    ]
+
+def create_reading_list_with_primary_wiktionary_readings(wiktionary_readings: list[str], kanken_readings: list[str]) -> list[Reading]:
+    """Whereas Wiktionary has specific readings for all on'yomi categories,
+       Kanjipedia does not. This function therefore generates readings from Wiktionary,
+       but sets the "in_kanjipedia" flag for the generated readings if they appear in the `kanken_readings`
+       list. Thus, the kanken readings list does not serve as a source of readings, only checked to
+       see whether it contains the relevant readings.
+    """
+    return [
+        Reading(reading=reading,
+                in_wiktionary=True,
+                in_kanken=reading in kanken_readings
+            )
+        for reading in wiktionary_readings
+    ]
+
+
 # Parsing kanji
 def parse_single_kanji(page_data: str) -> Kanji:
     """Return an as-yet incomplete (with some fields yet to be populated) Kanji object.
@@ -61,15 +87,21 @@ def parse_single_kanji(page_data: str) -> Kanji:
     level = KankenLevels.str_to_enum(re.search(r'alt="(準?\d{1,2})級"', page_data).group(1))
     is_kokuji = bool(parser.find("img", src="/common/images/icon_kokuji.gif"))
     
-    # Fetch reading data (from Wiktionary) TODO: specifically highlight which ones are Kanken
-    readings = KANJI_READINGS[kanji]
-    goon = readings["goon"]
-    kanon = readings["kanon"]
-    kanyoon = readings["kanyoon"]
-    soon = readings["soon"]
-    toon = readings["toon"]
-    on = readings["on"]
-    kun = readings["kun"]
+    # Fetch reading data (from Wiktionary)
+    wiktionary_readings = KANJI_READINGS[kanji]
+
+    # Fetch reading data (from this Kanjipedia page)
+    kanken_on = parser.find("img", src="/common/images/icon_on.png").find_next("p", attrs={"class": "onkunYomi"}).text
+    kanken_kun = parser.find("img", src="/common/images/icon_kun.png").find_next("p", attrs={"class": "onkunYomi"}).text
+
+    kun = create_reading_list(wiktionary_readings["kun"], kanken_kun)
+    on = create_reading_list(wiktionary_readings["on"], kanken_on)
+
+    goon = create_reading_list_with_primary_wiktionary_readings(wiktionary_readings["goon"], kanken_on)
+    kanon = create_reading_list_with_primary_wiktionary_readings(wiktionary_readings["kanon"], kanken_on)
+    kanyoon = create_reading_list_with_primary_wiktionary_readings(wiktionary_readings["kanyoon"], kanken_on)
+    soon = create_reading_list_with_primary_wiktionary_readings(wiktionary_readings["soon"], kanken_on)
+    toon = create_reading_list_with_primary_wiktionary_readings(wiktionary_readings["toon"], kanken_on)
 
     # Kanji trivia
     bushu_image = parser.find("p", attrs={"class": "kanjiBushu"}).find_next("img").attrs["src"]

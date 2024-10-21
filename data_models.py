@@ -1,6 +1,6 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum, IntEnum, auto
-from typing import TypedDict, Union
+from typing import Self, TypedDict, Union
 
 
 class KankenLevels(IntEnum):
@@ -114,18 +114,48 @@ KANJI_LEVELS: dict[str, str] = {
 }
 
 @dataclass
+class BaseAndOkurigana:
+    base: str  # Part that the kanji subsumes
+    okurigana: str  # Okurigana part that is written in kana
+    # Example: 重んじる has reading おも-んじる, where base = おも and okurigana = んじる
+
+    @classmethod
+    def parse_okurigana(cls, string: str) -> Self:
+        if "-" not in string:
+            string += "-"
+        
+        base, okurigana = string.split("-")
+        return cls(base, okurigana)
+
+    def __str__(self) -> str:
+        return f"{self.base}-{self.okurigana}"
+
+
+@dataclass(init=False)
+class Reading:
+    reading: BaseAndOkurigana  # Literal reading
+    in_kanken: bool  # Reading is found in the Kanken Kanji Jiten
+    in_wiktionary: bool # Reading is found on EN Wiktionary
+
+    def __init__(self, reading: str, in_kanken: bool, in_wiktionary: bool):
+        self.reading = BaseAndOkurigana.parse_okurigana(reading)
+        self.in_kanken = in_kanken
+        self.in_wiktionary = in_wiktionary
+
+
+@dataclass
 class Kanji:
     character: str
     level: KankenLevels
     is_kokuji: bool
     meanings: str  # For now, a paragraph or sequence thereof, just in plain text.
-    on: list[str]
-    goon: list[str]
-    kanon: list[str]
-    kanyoon: list[str]
-    toon: list[str]
-    soon: list[str]
-    kun: list[str]
+    on: list[Reading]
+    goon: list[Reading]
+    kanon: list[Reading]
+    kanyoon: list[Reading]
+    toon: list[Reading]
+    soon: list[Reading]
+    kun: list[Reading]
     # uetsuki: list[str]
     # shitatsuki: list[str]
     radical: str
