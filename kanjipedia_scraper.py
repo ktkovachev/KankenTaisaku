@@ -15,12 +15,14 @@ KOTOBA_RESULT_PATTERN = re.compile(r'(?:https://www.kanjipedia.jp)?/kotoba/(\d+)
 
 KANJI_SEARCH_BASE = "https://www.kanjipedia.jp/search"
 INDEX_BASE = "https://www.kanjipedia.jp/sakuin"
+HONBUN_INDEX_NAME = "honbun"
 YOJIJUKUGO_INDEX_NAME = "yojijyukugo"
 KOTOWAZA_INDEX_NAME = "koji_kotowaza"
 JUKUJIKUN_ATEJI_INDEX_NAME = "jyukujikun_ateji"
 
 BASE_PATH = "kanjipedia"
 KANJI_PATH = f"{BASE_PATH}/kanji"
+HONBUN_PATH = f"{BASE_PATH}/honbun"
 YOJIJUKUGO_PATH = f"{BASE_PATH}/{YOJIJUKUGO_INDEX_NAME}"
 KOTOWAZA_PATH = f"{BASE_PATH}/{KOTOWAZA_INDEX_NAME}"
 JUKUJIKUN_ATEJI_PATH = f"{BASE_PATH}/{JUKUJIKUN_ATEJI_INDEX_NAME}"
@@ -33,6 +35,10 @@ with open("supplementary/characters/kanken.json") as f:
 with open("supplementary/characters/hiragana.json") as f:
     j = json.load(f)
     HIRAGANA = functools.reduce(operator.add, (item["kana"] for item in j if len(item["kana"]) == 1))
+
+with open("supplementary/characters/katakana.json") as f:
+    j = json.load(f)
+    KATAKANA = functools.reduce(operator.add, (item["kana"] for item in j if len(item["kana"]) == 1))
 
 def pause_after_search():
     time.sleep(random.random())
@@ -136,9 +142,10 @@ def harvest_kotoba_links_from_search(search_page: str, save_location: str) -> No
                 print(e)
                 print("Waiting 30 seconds before trying again...")
                 time.sleep(30)
-def download_index_generic(index_name: str, save_path: str) -> None:
+
+def download_index_generic(index_name: str, save_path: str, index_alphabet: list[str] = HIRAGANA) -> None:
     index_path = get_local_index_path(index_name)
-    for kana in HIRAGANA:
+    for kana in index_alphabet:
         if any(page[0] == kana for page in os.listdir(index_path)):
             # Index has already been saved
             print(f"Skpping index {index_name} for {kana}...")
@@ -173,6 +180,8 @@ def download_index_generic(index_name: str, save_path: str) -> None:
                     print("Saving", file_save_path)
                     g.write(kotoba_content)
 
+def download_honbun() -> None:
+    download_index_generic(HONBUN_INDEX_NAME, HONBUN_PATH, index_alphabet=KATAKANA)
 
 def download_yojijukugo() -> None:
     download_index_generic(YOJIJUKUGO_INDEX_NAME, YOJIJUKUGO_PATH)
@@ -193,11 +202,12 @@ def download_kotoba() -> None:
             harvest_kotoba_links_from_search(content, SAVE_LOCATION)
 
 def main():
-    download_kanji(); print("Finished scraping kanji...")
-    download_yojijukugo(); print("Finished scraping yojijukugo...")
-    download_kotowaza(); print("Finished scraping kotowaza...")
-    download_jukujikun_and_ateji(); print("Finished scraping jukujikun...")
-    download_kotoba(); print("Finished downloading kotoba...")
+    # download_kanji(); print("Finished scraping kanji...")
+    download_honbun(); print("Finished scraping main dictionary index...")
+    # download_yojijukugo(); print("Finished scraping yojijukugo...")
+    # download_kotowaza(); print("Finished scraping kotowaza...")
+    # download_jukujikun_and_ateji(); print("Finished scraping jukujikun...")
+    # download_kotoba(); print("Finished downloading kotoba...")
     print("Done.")
 
 if __name__ == "__main__":
