@@ -1,0 +1,1 @@
+grep -rnw 'kanjipedia/kanji' -e 'icon_rewrite.png' | sed -E 's/(kanjipedia\/kanji\/.\.html).+/\1/' > kakikae.txt
