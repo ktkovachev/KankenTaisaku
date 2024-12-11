@@ -251,6 +251,10 @@ class ReadingSet(TypedDict):
     kun: list[str]
     nanori: list[str]
 
+class ReadingRecord(TypedDict):
+    reading: str
+    accent: list[str]  # More complicated, as the data includes e.g. (副)0,(名)1
+
 class KaikkiTemplateData(TypedDict):
     name: str
     args: dict[str, str]

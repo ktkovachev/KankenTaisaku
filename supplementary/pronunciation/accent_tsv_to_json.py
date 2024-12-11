@@ -1,12 +1,7 @@
 from collections import defaultdict
 import json
 from tqdm import tqdm
-from typing import TypedDict
-
-class ReadingRecord(TypedDict):
-    reading: str
-    # accent: list[int]
-    accent: list[str]  # More complicated, as the data includes e.g. (副)0,(名)1
+from data_models import ReadingRecord
 
 def main():
     out: dict[str, ReadingRecord] = defaultdict(ReadingRecord)
