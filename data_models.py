@@ -129,6 +129,9 @@ class BaseAndOkurigana:
 
     def __str__(self) -> str:
         return f"{self.base}-{self.okurigana}"
+    
+    def __hash__(self):
+        return hash((self.base, self.okurigana))
 
 
 @dataclass(init=False)
@@ -136,19 +139,57 @@ class Reading:
     reading: BaseAndOkurigana  # Literal reading
     in_kanken: bool  # Reading is found in the Kanken Kanji Jiten
     in_wiktionary: bool # Reading is found on EN Wiktionary
+    is_hyougai: bool
 
-    def __init__(self, reading: str, in_kanken: bool, in_wiktionary: bool):
+    def __init__(self, reading: str, in_kanken: bool, in_wiktionary: bool, is_hyougai: bool = False):
         self.reading = BaseAndOkurigana.parse_okurigana(reading)
         self.in_kanken = in_kanken
         self.in_wiktionary = in_wiktionary
+        self.is_hyougai = is_hyougai
+    
+    def __str__(self):
+        return f"{self.reading}:{'k' if self.in_kanken else ''}{'w' if self.in_wiktionary else ''}{'h' if self.is_hyougai else ''}"
 
+# Temporarily use this class when parsing kun readings from Kanjipedia, as this information must later be collated into the overall
+# `Reading` object, but the hyougai-pertaining information must be retained in the meantime.
+@dataclass(init=False)
+class KankenReading:
+    reading: BaseAndOkurigana
+    is_hyougai: bool
+
+    def __init__(self, reading: str, is_hyougai: bool):
+        self.reading = BaseAndOkurigana.parse_okurigana(reading)
+        self.is_hyougai = is_hyougai
+    
+    def __hash__(self):
+        return hash((self.reading, self.is_hyougai))
+
+@dataclass
+class Meaning:
+    qualifier: str
+    submeanings: list[str] # TODO: make class with "examples" attribute? Must ensure the format of entries roughly allows for this.
+
+    def __str__(self):
+        out = self.qualifier
+        def_num = "①"
+        for submeaning in self.submeanings:
+            out += f"{def_num}{submeaning}"
+            def_num = chr(ord(def_num)+1)  # Get next circled number
+        return out
+
+    @staticmethod
+    def meaning_list_to_str(meaning_list: list[Self]) -> str:
+        out = ""
+        for meaning, circled_digit in zip(meaning_list, ("㊀", "㊁", "㊂", "㊃", "㊄")):
+            out += circled_digit + str(meaning)
+        return out
 
 @dataclass
 class Kanji:
     character: str
     level: KankenLevels
     is_kokuji: bool
-    meanings: str  # For now, a paragraph or sequence thereof, just in plain text.
+    meanings: list[Meaning]
     on: list[Reading]
     goon: list[Reading]
     kanon: list[Reading]
@@ -172,17 +213,21 @@ class Kanji:
     @property
     def is_kyouiku(self) -> bool:
         return KankenLevels.is_kyouiku(self.level)
-    
+
     @staticmethod
     def format_kanji_reading_list(readings: list[str]) -> str:
-        return "; ".join(readings)
+        return "; ".join(map(str, readings))
+    
+    @staticmethod
+    def format_kanji_meaning_list(meanings: list[Meaning]) -> str:
+        return Meaning.meaning_list_to_str(meanings)
 
     def as_tuple(self) -> tuple:
         return (
             self.character,
             str(self.level),
             str(int(self.is_kokuji)),  # 0 or 1
-            self.meanings,
+            self.format_kanji_meaning_list(self.meanings),
             self.format_kanji_reading_list(self.on),
             self.format_kanji_reading_list(self.goon),
             self.format_kanji_reading_list(self.kanon),

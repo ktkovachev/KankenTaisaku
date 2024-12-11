@@ -4,7 +4,7 @@ import regex as re
 import os.path
 import bs4
 from tqdm import tqdm
-from data_models import GlyphOrigin, Kanji, Kanjitab, KankenLevels, Kotoba, Reading, RikuSho
+from data_models import GlyphOrigin, Kanji, Kanjitab, KankenReading, KankenLevels, Kotoba, Meaning, Reading, RikuSho
 from global_data import KANJI_READINGS, IMAGE_NAME_TO_RADICAL, HEADWORD_KANJI_TO_UNICODE, KANJI_ETYMOLOGIES, PITCH_ACCENTS, SPECIAL_IMAGE_EXCEPTIONS
 
 def compile_yojijukugo() -> list[str]:
@@ -47,14 +47,27 @@ def convert_kanji_image(page_data: str, parser: bs4.BeautifulSoup) -> str:
     else:
         raise Exception("Kanji could not be retrieved")
 
-def create_reading_list(wiktionary_readings: list[str], kanken_readings: list[str]) -> list[Reading]:
-    return [
-        Reading(reading=reading,
-                in_wiktionary=reading in wiktionary_readings,
-                in_kanken=reading in kanken_readings
-            )
-        for reading in itertools.chain(set(wiktionary_readings), set(kanken_readings))
-    ]
+def create_reading_list(wiktionary_readings: list[str], kanken_readings: list[KankenReading]) -> list[Reading]:
+    wiktionary_set = set(wiktionary_readings)
+    out = []
+    seen_readings = set()
+    for reading in kanken_readings:
+        str_format_reading = str(reading.reading)
+        seen_readings.add(str_format_reading)
+        out.append(Reading(
+            str_format_reading,
+            in_kanken=True,
+            in_wiktionary=str_format_reading in wiktionary_set
+        ))
+    
+    for reading in wiktionary_set:
+        if reading not in seen_readings:
+            out.append(Reading(
+                reading,
+                in_kanken=False,
+                in_wiktionary=True
+            ))
+    return out
 
 def create_reading_list_with_primary_wiktionary_readings(wiktionary_readings: list[str], kanken_readings: list[str]) -> list[Reading]:
     """Whereas Wiktionary has specific readings for all on'yomi categories,
@@ -71,6 +84,60 @@ def create_reading_list_with_primary_wiktionary_readings(wiktionary_readings: li
         for reading in wiktionary_readings
     ]
 
+
+MEANING_NUMBER_PATTERN = re.compile(r'<img.*? alt="[一二三四]".*?>')
+SUBMEANING_NUMBER_PATTERN = re.compile(r"[①-⑳]")
+def parse_meaning_list(meaning_string: str) -> list[Meaning]:
+    if not MEANING_NUMBER_PATTERN.search(meaning_string):
+        meaning_string = '<img src="/common/images/icon_one.png" alt="一">' + meaning_string
+    
+    main_meanings = MEANING_NUMBER_PATTERN.split(meaning_string)[1:] # Ignore empty element resulting from the split    
+    split: list[Meaning] = []
+    for main_meaning in main_meanings:
+        if "①" not in main_meaning:
+            main_meaning = "①" + main_meaning
+
+        sense_qualifier = main_meaning[:main_meaning.index("①")].strip()
+        split.append(Meaning(
+            sense_qualifier,
+            SUBMEANING_NUMBER_PATTERN.split(main_meaning)[1:]
+            )
+        )
+    return split
+
+
+# https://stackoverflow.com/questions/4877139/how-can-i-convert-all-japanese-hiragana-to-katakana-characters-in-python
+hira_start = int("3041", 16)
+hira_end = int("3096", 16)
+kata_start = int("30a1", 16)
+kata_to_hira = dict()
+for i in range(hira_start, hira_end+1):
+    # print(chr(i), chr(i-hira_start+kata_start))
+    kata_to_hira[chr(i-hira_start+kata_start)] = chr(i)
+
+def normalize_katakana(katakana: str) -> str:
+    # katakana = katakana.strip()
+    return "".join(kata_to_hira[char] for char in katakana)
+
+OKURIGANA_READING_PATTERN = re.compile(r"(.+)<span class=\"txtNormal\">(.+?)<")
+HYOUGAI_TEXT = '<img alt="外" src="/common/images/icon_loanword.png"/>'
+def parse_kanjipedia_kun(kun_string: str) -> list[KankenReading]:
+    kun_string = kun_string.replace(HYOUGAI_TEXT, "・" + HYOUGAI_TEXT)
+    all_readings = kun_string.split("・")
+    out = []
+    is_hyougai = False
+    for reading_str in all_readings:
+        try_match = OKURIGANA_READING_PATTERN.search(reading_str)
+        if try_match:
+            wiktionary_format_reading = f"{try_match.group(1)}-{try_match.group(2)}"
+        else:
+            wiktionary_format_reading = reading_str
+        if HYOUGAI_TEXT in wiktionary_format_reading:
+            wiktionary_format_reading = wiktionary_format_reading.replace(HYOUGAI_TEXT, "").strip()
+            is_hyougai = True
+        out.append(KankenReading(wiktionary_format_reading, is_hyougai))
+    
+    return out
 
 # Parsing kanji
 def parse_single_kanji(page_data: str) -> Kanji:
@@ -91,11 +158,17 @@ def parse_single_kanji(page_data: str) -> Kanji:
     wiktionary_readings = KANJI_READINGS[kanji]
 
     # Fetch reading data (from this Kanjipedia page)
-    kanken_on = parser.find("img", src="/common/images/icon_on.png").find_next("p", attrs={"class": "onkunYomi"}).text
-    kanken_kun = parser.find("img", src="/common/images/icon_kun.png").find_next("p", attrs={"class": "onkunYomi"}).text
+    kanken_on = [KankenReading(reading, is_hyougai=False) for reading in map(normalize_katakana, map(str.strip, bs4.BeautifulSoup(parser.find("img", src="/common/images/icon_on.png").find_next("p", attrs={"class": "onkunYomi"}).decode_contents().replace(HYOUGAI_TEXT, "・" + HYOUGAI_TEXT), "html.parser").text.replace("／", "").split("・")))]
+    kanken_kun = parse_kanjipedia_kun(parser.find("img", src="/common/images/icon_kun.png").find_next("p", attrs={"class": "onkunYomi"}).decode_contents())
 
-    kun = create_reading_list(wiktionary_readings["kun"], kanken_kun)
+    # # TODO: exclude readings that are present in Wiktionary from these lists?
+    # kun = []
+    # on = []
     on = create_reading_list(wiktionary_readings["on"], kanken_on)
+    kun = create_reading_list(wiktionary_readings["kun"], kanken_kun)
+    # print(on)
+    # print(kun)
+    # input()
 
     goon = create_reading_list_with_primary_wiktionary_readings(wiktionary_readings["goon"], kanken_on)
     kanon = create_reading_list_with_primary_wiktionary_readings(wiktionary_readings["kanon"], kanken_on)
@@ -112,7 +185,7 @@ def parse_single_kanji(page_data: str) -> Kanji:
     added_stroke_count = re.search(r'部首内画数(\d+)', page_data).group(1)
 
     kanji_right_section = parser.find(id="kanjiRightSection")
-    meanings = kanji_right_section.findChild("div").text.strip().replace("\n", "<br>")
+    meanings = parse_meaning_list(kanji_right_section.findChild("div").findChild("p").decode_contents().strip().replace("\n", "<br>"))
 
     if (origin_head := parser.find(href="https://promo.kadokawa.co.jp/shinjigen/")) and (
         (origin_explanation := origin_head.find_next("p"))
