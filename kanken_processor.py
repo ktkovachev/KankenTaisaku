@@ -57,7 +57,10 @@ def main():
 
     # Remove the object storing the cache
     if args.purge_cache:
-        os.remove(CACHE_OBJECT_PATH)
+        try:
+            os.remove(CACHE_OBJECT_PATH)
+        except FileNotFoundError:
+            pass
 
     action: str = args.action
     if action == "compile-data":
