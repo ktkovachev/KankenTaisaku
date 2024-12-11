@@ -65,7 +65,7 @@ def main():
     args = cli_parser.parse_args()
 
     # Remove the object storing the cache
-    if args.purge_cache:
+    if args.purge_cache and input("Really delete cached data? ") in ("y", "yes"):
         try:
             os.remove(CACHE_OBJECT_PATH)
         except FileNotFoundError:
