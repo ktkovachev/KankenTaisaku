@@ -1,3 +1,5 @@
 requests
 genanki
 regex
+tqdm
+bs4
