@@ -8,7 +8,6 @@ def main():
     with open("accents.tsv") as f:
         for line in tqdm(f):
             word, reading, accent = line[:-1].split("\t")
-            # accent = list(map(int, accent.split(",")))
             accent = accent.split(",")
             out[word] = ReadingRecord(reading=reading, accent=accent)
 
