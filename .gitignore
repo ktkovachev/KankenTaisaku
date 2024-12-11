@@ -4,3 +4,4 @@ build
 *.zip
 __pycache__
 kaikki.org-*
+.venv
