@@ -20,6 +20,7 @@ def parse_data_cached() -> tuple[Iterable[Kanji], Iterable[Kotoba]]:
         kanji, kotoba = parse_all_kanji(), parse_all_kotoba()
         with open(CACHE_OBJECT_PATH, "wb") as f:
             pickle.dump((list(kanji), list(kotoba)), f)
+        return kanji, kotoba
 
 def generate_anki_deck():
     from anki_deck_generator import build_deck
