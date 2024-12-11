@@ -62,7 +62,7 @@ class KankenLevels(IntEnum):
             self.ONE: "1",
         }[self]
 
-class RikuSho(Enum):
+class RikuSho(IntEnum):
     PICTOGRAPH = auto()
     IDEOGRAPH = auto()
     IDEOGRAPHIC_COMPOUND = auto()
@@ -133,6 +133,12 @@ class BaseAndOkurigana:
     def __hash__(self):
         return hash((self.base, self.okurigana))
 
+    # def __dict__(self) -> dict:
+    #     return {
+    #         "base": self.base,
+    #         "okurigana": self.okurigana
+    #     }
+
 
 @dataclass(init=False)
 class Reading:
@@ -149,6 +155,14 @@ class Reading:
     
     def __str__(self):
         return f"{self.reading}:{'k' if self.in_kanken else ''}{'w' if self.in_wiktionary else ''}{'h' if self.is_hyougai else ''}"
+
+    # def __dict__(self) -> dict:
+    #     return {
+    #         "reading": dict(self.reading),
+    #         "in_kanken": self.in_kanken,
+    #         "in_wiktionary": self.in_wiktionary,
+    #         "is_hyougai": self.is_hyougai
+    #     }
 
 # Temporarily use this class when parsing kun readings from Kanjipedia, as this information must later be collated into the overall
 # `Reading` object, but the hyougai-pertaining information must be retained in the meantime.
@@ -183,6 +197,12 @@ class Meaning:
         for meaning, circled_digit in zip(meaning_list, ("㊀", "㊁", "㊂", "㊃", "㊄")):
             out += circled_digit + str(meaning)
         return out
+
+    # def __dict__(self) -> dict:
+    #     return {
+    #         "qualifier": self.qualifier,
+    #         "submeanings": self.submeanings
+    #     }
 
 @dataclass
 class Kanji:
@@ -247,6 +267,27 @@ class Kanji:
         return"\t".join(
             self.as_tuple()
         )
+
+    # def __dict__(self) -> dict:
+    #     return {
+    #         "character": self.character,
+    #         "level": str(self.level),
+    #         "is_kokuji": self.is_kokuji,
+    #         "meanings": list(map(dict, self.meanings)),
+    #         "on": list(map(dict, self.on)),
+    #         "goon": list(map(dict, self.goon)),
+    #         "kanon": list(map(dict, self.kanon)),
+    #         "kanyoon": list(map(dict, self.kanyoon)),
+    #         "soon": list(map(dict, self.soon)),
+    #         "toon": list(map(dict, self.toon)),
+    #         "kun": list(map(dict, self.kun)),
+    #         "radical": self.radical,
+    #         "strokes": self.strokes,
+    #         "added_strokes": self.added_strokes,
+    #         "glyph_origin": str(self.glyph_origin),
+    #         "replaces": self.replaces,
+    #         "replaced_by": self.replaced_by,
+    #     }
 
 @dataclass
 class Kanjitab:
