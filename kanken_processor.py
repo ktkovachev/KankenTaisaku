@@ -17,9 +17,9 @@ def parse_data_cached() -> tuple[Iterable[Kanji], Iterable[Kotoba]]:
             return kanji, kotoba
     except FileNotFoundError:
         from kanjipedia_collator import parse_all_kanji, parse_all_kotoba
-        kanji, kotoba = parse_all_kanji(), parse_all_kotoba()
+        kanji, kotoba = list(parse_all_kanji()), list(parse_all_kotoba())
         with open(CACHE_OBJECT_PATH, "wb") as f:
-            pickle.dump((list(kanji), list(kotoba)), f)
+            pickle.dump((kanji, kotoba), f)
         return kanji, kotoba
 
 def generate_anki_deck():
