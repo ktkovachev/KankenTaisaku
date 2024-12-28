@@ -9,8 +9,8 @@ from typing import Iterable, Optional
 
 from data_models import Kanji, Kotoba
 
-KANJI_CACHE_OBJECT_PATH = Path("build/kanji_cache.pickle")
-KOTOBA_CACHE_OBJECT_PATH = Path("build/kotoba_cache.pickle")
+KANJI_CACHE_OBJECT_PATH = Path("build/cache/kanji_cache.pickle")
+KOTOBA_CACHE_OBJECT_PATH = Path("build/cache/kotoba_cache.pickle")
 def load_pickle(path: Path) -> Optional[object]:
     try:
         with open(path, "rb") as f:
@@ -48,7 +48,7 @@ def generate_anki_deck():
     from anki_deck_generator import build_deck
     print("Building Anki deck...", file=sys.stderr)
     package = build_deck(*parse_data_cached())
-    package.write_to_file("build/漢検一級.apkg")
+    package.write_to_file("build/anki/漢検一級.apkg")
 
 def generate_tsv_files():
     print("Building TSV files...", file=sys.stderr)
@@ -58,8 +58,8 @@ def generate_tsv_files():
             f.write("\n".join(str(item) for item in iterable))
 
     all_kanji, all_kotoba = parse_data_cached()
-    generate_dump("build/kanji.tsv", all_kanji)
-    generate_dump("build/kotoba.tsv", all_kotoba)
+    generate_dump("build/tsv/kanji.tsv", all_kanji)
+    generate_dump("build/tsv/kotoba.tsv", all_kotoba)
 
 def generate_json_files():
     print("Building JSON files...", file=sys.stderr)
@@ -69,8 +69,8 @@ def generate_json_files():
             f.write("\n".join(json.dumps(dataclasses.asdict(item), ensure_ascii=False) for item in iterable))
 
     all_kanji, all_kotoba = parse_data_cached()
-    generate_dump("build/kanji.jsonl", all_kanji)
-    generate_dump("build/kotoba.jsonl", all_kotoba)
+    generate_dump("build/json/kanji.jsonl", all_kanji)
+    generate_dump("build/json/kotoba.jsonl", all_kotoba)
 
 def main():
     cli_parser = argparse.ArgumentParser(
