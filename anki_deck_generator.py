@@ -121,7 +121,7 @@ def build_deck(kanjis: Iterable[Kanji], kotobas: Iterable[Kotoba]) -> genanki.Pa
     )
 
     kanken_kotoba_subdeck = genanki.Deck(
-        KANKEN_KANJI_SUBDECK_ID,
+        KANKEN_KOTOBA_SUBDECK_ID,
         "漢検一級::言葉"
     )
 
