@@ -78,8 +78,8 @@ KOTOBA_MODEL = genanki.Model(
         templates=[
             {
                 "name": "Card 1",
-                "qfmt": load_template("kanji_front.html"),
-                "afmt": load_template("kanji_back.html")
+                "qfmt": load_template("kotoba_front.html"),
+                "afmt": load_template("kotoba_back.html")
             }
         ],
         css=load_style("kotoba.css")
