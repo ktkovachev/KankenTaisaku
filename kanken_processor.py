@@ -1,28 +1,46 @@
 import dataclasses
 import json
 import os
+from pathlib import Path
+import pickle
 import sys
 import argparse
-from typing import Iterable
+from typing import Iterable, Optional
 
 from data_models import Kanji, Kotoba
 
-CACHE_OBJECT_PATH = "build/kanjipedia_cache.pickle"
+KANJI_CACHE_OBJECT_PATH = Path("build/kanji_cache.pickle")
+KOTOBA_CACHE_OBJECT_PATH = Path("build/kotoba_cache.pickle")
+def load_pickle(path: Path) -> Optional[object]:
+    try:
+        with open(path, "rb") as f:
+            obj = pickle.load(f)
+            return obj
+    except FileNotFoundError:
+        return None
+
+def dump_pickle(path: Path, obj: object) -> None:
+    with open(path, "wb") as f:
+        pickle.dump(obj, f)
+
 def parse_data_cached() -> tuple[Iterable[Kanji], Iterable[Kotoba]]:
     """Use pickling to cache parsed kanji/kotoba data on disk and retrieve it if already stored.
-    If the data is over a certain age, it may be invalidated.
+    If the data is over a certain age, or some other conditions are met, it may be invalidated. (Not yet implemented.)
     """
-    import pickle
-    try:
-        with open(CACHE_OBJECT_PATH, "rb") as f:
-            kanji, kotoba = pickle.load(f)
-            return kanji, kotoba
-    except FileNotFoundError:
-        from kanjipedia_collator import parse_all_kanji, parse_all_kotoba
-        kanji, kotoba = list(parse_all_kanji()), list(parse_all_kotoba())
-        with open(CACHE_OBJECT_PATH, "wb") as f:
-            pickle.dump((kanji, kotoba), f)
-        return kanji, kotoba
+    kanji = load_pickle(KANJI_CACHE_OBJECT_PATH)
+    kotoba = load_pickle(KOTOBA_CACHE_OBJECT_PATH)
+    
+    if kanji is None:
+        from kanjipedia_collator import parse_all_kanji
+        kanji = list(parse_all_kanji())
+        dump_pickle(KANJI_CACHE_OBJECT_PATH, kanji)
+        
+    if kotoba is None:    
+        from kanjipedia_collator import parse_all_kotoba
+        kotoba = list(parse_all_kotoba())
+        dump_pickle(KOTOBA_CACHE_OBJECT_PATH, kotoba)
+
+    return kanji, kotoba
 
 def generate_anki_deck():
     from anki_deck_generator import build_deck
