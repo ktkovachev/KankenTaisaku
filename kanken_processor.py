@@ -32,11 +32,13 @@ def parse_data_cached() -> tuple[Iterable[Kanji], Iterable[Kotoba]]:
     
     if kanji is None:
         from kanjipedia_collator import parse_all_kanji
+        print("Parsing kanji from Kanjipedia dump...", file=sys.stderr)
         kanji = list(parse_all_kanji())
         dump_pickle(KANJI_CACHE_OBJECT_PATH, kanji)
         
     if kotoba is None:    
         from kanjipedia_collator import parse_all_kotoba
+        print("Parsing kotoba from Kanjipedia dump...", file=sys.stderr)
         kotoba = list(parse_all_kotoba())
         dump_pickle(KOTOBA_CACHE_OBJECT_PATH, kotoba)
 
