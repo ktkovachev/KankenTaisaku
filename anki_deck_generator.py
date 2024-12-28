@@ -108,7 +108,7 @@ def create_kotoba_note(kotoba: Kotoba) -> KotobaNote:
         fields=kotoba.as_tuple()
     )
 
-def build_deck(kanjis: Iterable[Kanji], kotobas: Iterable[Kotoba]):
+def build_deck(kanjis: Iterable[Kanji], kotobas: Iterable[Kotoba]) -> genanki.Package:
     # Currently appears to be unnecessary, as cards are only sorted into the subdecks, not the main deck
     kanken_deck = genanki.Deck(
         KANKEN_DECK_ID,
