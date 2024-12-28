@@ -84,10 +84,11 @@ def main():
 
     # Remove the object storing the cache
     if args.purge_cache and input("Really delete cached data? ") in ("y", "yes"):
-        try:
-            os.remove(CACHE_OBJECT_PATH)
-        except FileNotFoundError:
-            pass
+        for path in (KANJI_CACHE_OBJECT_PATH, KOTOBA_CACHE_OBJECT_PATH):
+            try:
+                os.remove(path)
+            except FileNotFoundError:
+                pass
 
     action: str = args.action
     if action == "compile-tsv":
