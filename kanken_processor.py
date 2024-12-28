@@ -44,9 +44,7 @@ def parse_data_cached() -> tuple[Iterable[Kanji], Iterable[Kotoba]]:
 
 def generate_anki_deck():
     from anki_deck_generator import build_deck
-    # from kanjipedia_collator import parse_all_kanji, parse_all_kotoba
     print("Building Anki deck...", file=sys.stderr)
-    # package = build_deck(parse_all_kanji(), parse_all_kotoba())
     package = build_deck(*parse_data_cached())
     package.write_to_file("build/漢検一級.apkg")
 
