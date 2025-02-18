@@ -3,3 +3,4 @@ genanki
 regex
 tqdm
 bs4
+pywikibot
